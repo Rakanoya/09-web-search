@@ -5,6 +5,12 @@ const responseDiv = document.getElementById('response');
 // Add change event listener to the select
 topicSelect.addEventListener('change', async () => {
   try {
+    // Check if API key is available
+    if (!apiKey || apiKey === 'your-api-key-here') {
+      responseDiv.textContent = 'Please add your OpenAI API key to secrets.js';
+      return;
+    }
+
     // Show loading state
     responseDiv.textContent = 'Loading...';
     
@@ -23,7 +29,6 @@ topicSelect.addEventListener('change', async () => {
       },
       body: JSON.stringify({
         model: 'gpt-4o',
-
         messages: [
           {
             role: 'system',
@@ -33,9 +38,16 @@ topicSelect.addEventListener('change', async () => {
             role: 'user',
             content: prompt
           }
-        ]
+        ],
+        max_tokens: 1000
       })
     });
+
+    // Check if the response is ok
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`API Error: ${errorData.error?.message || response.statusText}`);
+    }
 
     // Parse the response
     const data = await response.json();
